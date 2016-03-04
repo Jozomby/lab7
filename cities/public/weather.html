@@ -1,0 +1,106 @@
+<html>
+<head>
+<title>City Finder</title>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script>
+$(document).ready(function() {
+$( "#cityfield" ).keyup(function() {
+  var url = "getcity?q="+$("#cityfield").val();
+  $.getJSON(url,function(data) {
+    var everything;
+    everything = "<ul>";
+    $.each(data, function(i,item) {
+      everything += "<li> "+data[i].city;
+    });
+    everything += "</ul>";
+    $("#txtHint").html(everything);
+  })
+  .done(function() { console.log('getJSON request succeeded!'); })
+  .fail(function(jqXHR, textStatus, errorThrown) { 
+    console.log('getJSON request failed! ' + textStatus); 
+    console.log("incoming "+jqXHR.responseText);
+  })
+  .always(function() { console.log('getJSON request ended!');
+  })
+  .complete(function() { console.log("complete"); });
+});
+  $("#button").click(function(e){
+    var value = $("#cityfield").val();
+    console.log(value);
+    $("#dispcity").text(value);
+    var myurl = "https://api.wunderground.com/api/015c228490ac800e/geolookup/conditions/q/UT/";
+    myurl += value;
+    myurl += ".json";
+    console.log(myurl);
+    $.ajax({
+	url : myurl,
+	dataType : "jsonp",
+	success : function(parsed_json) {
+	    var location = parsed_json['location']['city'];
+	    var temp_string = parsed_json['current_observation']['temperature_string'];
+	    var current_weather = parsed_json['current_observation']['weather'];
+	    everything = "<ul>";
+	    everything += "<li>Location: "+location;
+	    everything += "<li>Temperature: "+temp_string;
+	    everything += "<li>Weather: "+current_weather;
+	    everything += "</ul>";
+	    $("#weather").html(everything);
+	}
+    });
+    e.preventDefault();
+  });
+  $("#newsButton").click(function(e){
+    var myurl = "getnews?q="+$("#section").val();
+    $.ajax({
+	url : myurl,
+	dataType : "json",
+	success : function(parsed_json) {
+	    console.log(parsed_json);
+	    var title = parsed_json.results[0]['title'];
+	    var abstract = parsed_json.results[0]['abstract'];
+	    var url = parsed_json.results[0]['url'];
+	    everything = "<p>"+title+"</p>"+"<p>"+abstract+"</p>"+"<p><a href=\""+url+"\">"+url+"</a>";
+	    $("#news").html(everything);
+	}
+    });
+    e.preventDefault();
+  });
+});
+</script>
+
+</head>
+<body>
+<form>
+Enter A Utah City: <input type="text" id="cityfield" value=""><br>
+Suggestion: <span id="txtHint">Empty</span>
+<input id="button" type="submit" value="Submit">
+</form>
+<p>City</p>
+<textarea id="dispcity">No City</textarea>
+<p>Current Weather</p>
+<div id="weather">No weather</div>
+<br>
+<p>News</p>
+<select id="section">
+  <option value="home">Home</option>
+  <option value="world">World</option>
+  <option value="national">National</option>
+  <option value="politics">Politics</option>
+  <option value="nyregion">NYRegion</option>
+  <option value="business">Business</option>
+  <option value="opinion">Opinion</option>
+  <option value="technology">Technology</option>
+  <option value="science">Science</option>
+  <option value="health">Health</option>
+  <option value="sports">Sports</option>
+  <option value="arts">Arts</option>
+  <option value="fashion">Fashion</option>
+  <option value="dining">Dining</option>
+  <option value="travel">Travel</option>
+  <option value="magazine">Magazine</option>
+  <option value="realestate">Realestate</option>
+</select>
+<input id="newsButton" type="submit" value="Get News">
+<div id="news"></div>
+</body>
+</html>
